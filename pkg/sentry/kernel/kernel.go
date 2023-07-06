@@ -35,6 +35,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"gvisor.dev/gvisor/pkg/abi/linux"
@@ -600,6 +601,20 @@ func (k *Kernel) LoadFrom(ctx context.Context, r wire.Reader, timeReady chan str
 	}
 	log.Infof("Kernel load stats: %s", stats.String())
 	log.Infof("Kernel load took [%s].", time.Since(kernelStart))
+
+	go func() {
+		time.Sleep(time.Second)
+
+		gcStart := time.Now()
+		runtime.GC()
+		log.Infof("GC1 took [%s].", time.Since(gcStart))
+
+		time.Sleep(time.Second)
+
+		gcStart = time.Now()
+		runtime.GC()
+		log.Infof("GC2 took [%s].", time.Since(gcStart))
+	}()
 
 	// rootNetworkNamespace should be populated after loading the state file.
 	// Restore the root network stack.
